@@ -282,7 +282,7 @@ const HeroSection = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 2.0 }}
                 >
-                  <span className="code-keyword">        return</span> elegant_solution</span>
+                  <span><span className="code-keyword">        return</span> elegant_solution</span>
                 </motion.span>
               </code>
             </pre>
