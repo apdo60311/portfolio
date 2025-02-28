@@ -88,7 +88,7 @@ const HeroSection = () => {
   };
 
   return (
-    <>
+    <React.Fragment>
       <div className="container flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -367,7 +367,7 @@ const HeroSection = () => {
           </Link>
         </motion.div>
       </div>
-    </>
+    </React.Fragment>
   );
 };
 
