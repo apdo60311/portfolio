@@ -13,8 +13,10 @@ import {
   Linkedin, 
   Mail, 
   ArrowRight, 
-  ExternalLink 
+  ExternalLink,
+  Loader2
 } from "lucide-react";
+import { supabase, ProfileType, ProjectType } from "@/lib/supabase";
 
 const TypingEffect = ({ text, delay = 100 }: { text: string; delay?: number }) => {
   const [displayText, setDisplayText] = React.useState("");
@@ -41,35 +43,46 @@ const TypingEffect = ({ text, delay = 100 }: { text: string; delay?: number }) =
   );
 };
 
-// Featured project interface
-interface FeaturedProject {
-  title: string;
-  description: string;
-  tags: string[];
-  link: string;
-}
-
 const HeroSection = () => {
-  const featuredProjects: FeaturedProject[] = [
-    {
-      title: "Distributed Data Pipeline",
-      description: "High-throughput data processing system handling 10TB+ daily",
-      tags: ["Kafka", "Spark", "AWS"],
-      link: "/projects"
-    },
-    {
-      title: "ML Model Serving Platform",
-      description: "Scalable platform for deploying ML models in production",
-      tags: ["ML", "Kubernetes", "TensorFlow"],
-      link: "/projects"
-    },
-    {
-      title: "Microservices Architecture",
-      description: "Cloud-native platform with service mesh for traffic management",
-      tags: ["Istio", "gRPC", "Go"],
-      link: "/projects"
-    }
-  ];
+  const [profile, setProfile] = React.useState<ProfileType | null>(null);
+  const [featuredProjects, setFeaturedProjects] = React.useState<ProjectType[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .single();
+        
+        if (profileError) throw new Error(`Error fetching profile: ${profileError.message}`);
+        setProfile(profileData);
+        
+        // Fetch featured projects
+        const { data: projectsData, error: projectsError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('featured', true)
+          .order('created_at', { ascending: false });
+        
+        if (projectsError) throw new Error(`Error fetching projects: ${projectsError.message}`);
+        setFeaturedProjects(projectsData);
+        
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -87,6 +100,47 @@ const HeroSection = () => {
     visible: { y: 0, opacity: 1 },
   };
 
+  // Fallback if data is loading
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-lg">Loading portfolio data...</span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-4">
+        <p className="text-destructive text-lg mb-4">
+          Unable to load portfolio data: {error}
+        </p>
+        <p className="text-muted-foreground mb-4">
+          This could be due to a connection issue or missing Supabase configuration.
+        </p>
+        <Button onClick={() => window.location.reload()}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  // Fallback content if no data is available
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-4">
+        <p className="text-lg mb-4">
+          No profile data found in Supabase.
+        </p>
+        <p className="text-muted-foreground mb-4">
+          Please make sure you've added a profile in your Supabase database.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <React.Fragment>
       <div className="container flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] py-12">
@@ -103,11 +157,11 @@ const HeroSection = () => {
             className="mb-6 inline-flex items-center justify-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
           >
             <Terminal className="mr-2 h-4 w-4" />
-            <span>Backend Engineering</span>
+            <span>{profile.title}</span>
           </motion.div>
 
           <h1 className="font-mono font-bold tracking-tight mb-4 text-5xl md:text-6xl">
-            <TypingEffect text="Alex Johnson" delay={150} />
+            <TypingEffect text={profile.name} delay={150} />
           </h1>
           
           <motion.p 
@@ -116,7 +170,7 @@ const HeroSection = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <span className="text-primary font-mono">Backend Engineer</span> with expertise in 
+            <span className="text-primary font-mono">{profile.tagline}</span> with expertise in 
             <motion.span 
               className="inline-flex items-center px-1.5"
               initial={{ opacity: 0, x: -10 }}
@@ -173,7 +227,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.9 }}
           >
             <a 
-              href="https://github.com" 
+              href={profile.github_url || "https://github.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-secondary/50 hover:bg-secondary p-3 rounded-full transition-colors"
@@ -181,7 +235,7 @@ const HeroSection = () => {
               <Github className="h-5 w-5" />
             </a>
             <a 
-              href="https://linkedin.com" 
+              href={profile.linkedin_url || "https://linkedin.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-secondary/50 hover:bg-secondary p-3 rounded-full transition-colors"
@@ -189,7 +243,7 @@ const HeroSection = () => {
               <Linkedin className="h-5 w-5" />
             </a>
             <a 
-              href="mailto:contact@example.com"
+              href={`mailto:${profile.email || "contact@example.com"}`}
               className="bg-secondary/50 hover:bg-secondary p-3 rounded-full transition-colors"
             >
               <Mail className="h-5 w-5" />
@@ -234,7 +288,7 @@ const HeroSection = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.4 }}
                 >
-                  <span>        self.name = <span className="code-string">"Alex Johnson"</span></span>
+                  <span>        self.name = <span className="code-string">"{profile.name}"</span></span>
                 </motion.span>
                 <motion.span 
                   className="code-line"
@@ -242,7 +296,7 @@ const HeroSection = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.5 }}
                 >
-                  <span>        self.skills = [<span className="code-string">"Python"</span>, <span className="code-string">"Java"</span>, <span className="code-string">"SQL"</span>, <span className="code-string">"Docker"</span>, <span className="code-string">"Kubernetes"</span>]</span>
+                  <span>        self.skills = [{profile.skills.map(skill => `<span className="code-string">"${skill}"</span>`).join(', ')}]</span>
                 </motion.span>
                 <motion.span 
                   className="code-line"
@@ -250,7 +304,7 @@ const HeroSection = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.6 }}
                 >
-                  <span>        self.passion = <span className="code-string">"Building scalable systems"</span></span>
+                  <span>        self.passion = <span className="code-string">"{profile.passion}"</span></span>
                 </motion.span>
                 <motion.span 
                   className="code-line"
@@ -304,34 +358,40 @@ const HeroSection = () => {
             </p>
           </motion.div>
 
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {featuredProjects.map((project, index) => (
-              <motion.div 
-                key={index}
-                className="glass p-6 rounded-lg hover:shadow-md hover:shadow-primary/10 transition-all"
-                variants={itemVariants}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                <p className="text-muted-foreground mb-4">{project.description}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tags.map((tag, tagIndex) => (
-                    <span key={tagIndex} className="skill-tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <Link to={project.link} className="group inline-flex items-center text-primary hover:underline">
-                  View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+          {featuredProjects.length > 0 ? (
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {featuredProjects.map((project, index) => (
+                <motion.div 
+                  key={project.id}
+                  className="glass p-6 rounded-lg hover:shadow-md hover:shadow-primary/10 transition-all"
+                  variants={itemVariants}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                >
+                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                  <p className="text-muted-foreground mb-4">{project.description}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {project.tags.map((tag, tagIndex) => (
+                      <span key={tagIndex} className="skill-tag">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <Link to={project.link} className="group inline-flex items-center text-primary hover:underline">
+                    View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <p className="text-center text-muted-foreground">
+              No featured projects found. Please add some projects in your Supabase database.
+            </p>
+          )}
 
           <motion.div 
             className="text-center mt-10"
