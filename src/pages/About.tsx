@@ -7,6 +7,8 @@ import {
   FileCode, GitMerge, Cpu, Coffee,
   Award, Briefcase, GraduationCap, Users
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { ProfileType } from "@/lib/supabase";
 
 // Skill category type
 interface SkillCategory {
@@ -25,37 +27,78 @@ interface TimelineEntry {
 }
 
 const About = () => {
+  const [profile, setProfile] = React.useState<ProfileType | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchProfile() {
+      try {
+        setLoading(true);
+        // Fetch the first profile from the profiles table
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .limit(1)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+        } else if (data) {
+          setProfile(data);
+        }
+      } catch (error) {
+        console.error("Unexpected error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProfile();
+  }, []);
+
   // Define skill categories
   const skillCategories: SkillCategory[] = [
     {
       title: "Languages",
       icon: <Code className="h-5 w-5" />,
-      skills: ["Python", "Java", "JavaScript/TypeScript", "Go", "SQL", "C++"]
+      skills: profile?.skills.filter((skill) => 
+        ["Python", "Java", "JavaScript", "TypeScript", "Go", "SQL", "C++"].includes(skill)
+      ) || ["Python", "Java", "JavaScript/TypeScript", "Go", "SQL", "C++"]
     },
     {
       title: "Databases",
       icon: <Database className="h-5 w-5" />,
-      skills: ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Cassandra", "Neo4j"]
+      skills: profile?.skills.filter((skill) => 
+        ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Cassandra", "Neo4j"].includes(skill)
+      ) || ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Cassandra", "Neo4j"]
     },
     {
       title: "DevOps & Infrastructure",
       icon: <Server className="h-5 w-5" />,
-      skills: ["Docker", "Kubernetes", "Terraform", "AWS", "GCP", "CI/CD", "Prometheus", "Grafana"]
+      skills: profile?.skills.filter((skill) => 
+        ["Docker", "Kubernetes", "Terraform", "AWS", "GCP", "CI/CD", "Prometheus", "Grafana"].includes(skill)
+      ) || ["Docker", "Kubernetes", "Terraform", "AWS", "GCP", "CI/CD", "Prometheus", "Grafana"]
     },
     {
       title: "Machine Learning",
       icon: <Cpu className="h-5 w-5" />,
-      skills: ["TensorFlow", "PyTorch", "scikit-learn", "Keras", "Pandas", "NumPy", "MLOps"]
+      skills: profile?.skills.filter((skill) => 
+        ["TensorFlow", "PyTorch", "scikit-learn", "Keras", "Pandas", "NumPy", "MLOps"].includes(skill)
+      ) || ["TensorFlow", "PyTorch", "scikit-learn", "Keras", "Pandas", "NumPy", "MLOps"]
     },
     {
       title: "Tools & Frameworks",
       icon: <FileCode className="h-5 w-5" />,
-      skills: ["Django", "FastAPI", "Spring Boot", "Express.js", "Flask", "gRPC", "RabbitMQ", "Kafka"]
+      skills: profile?.skills.filter((skill) => 
+        ["Django", "FastAPI", "Spring Boot", "Express.js", "Flask", "gRPC", "RabbitMQ", "Kafka"].includes(skill)
+      ) || ["Django", "FastAPI", "Spring Boot", "Express.js", "Flask", "gRPC", "RabbitMQ", "Kafka"]
     },
     {
       title: "Other",
       icon: <GitMerge className="h-5 w-5" />,
-      skills: ["Git", "RESTful APIs", "GraphQL", "Microservices", "System Design", "Testing", "Agile"]
+      skills: profile?.skills.filter((skill) => 
+        ["Git", "RESTful APIs", "GraphQL", "Microservices", "System Design", "Testing", "Agile"].includes(skill)
+      ) || ["Git", "RESTful APIs", "GraphQL", "Microservices", "System Design", "Testing", "Agile"]
     }
   ];
 
@@ -115,11 +158,11 @@ const About = () => {
             <span>About Me</span>
           </div>
           <h1 className="mb-6">
-            Backend Engineer & <span className="text-primary">System Architect</span>
+            {profile?.title || "Backend Engineer & "} 
+            <span className="text-primary">{profile ? "" : "System Architect"}</span>
           </h1>
           <p className="text-xl text-muted-foreground">
-            With over 8 years of experience designing and building high-performance, 
-            scalable backend systems for companies ranging from startups to Fortune 500s.
+            {profile?.tagline || "With over 8 years of experience designing and building high-performance, scalable backend systems for companies ranging from startups to Fortune 500s."}
           </p>
         </motion.div>
 
@@ -154,8 +197,7 @@ const About = () => {
               </h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  I believe in writing code that is not just functional but also maintainable and scalable. 
-                  The best systems are those that elegantly solve complex problems while remaining simple to understand.
+                  {profile?.passion || "I believe in writing code that is not just functional but also maintainable and scalable. The best systems are those that elegantly solve complex problems while remaining simple to understand."}
                 </p>
                 <p>
                   My work is guided by principles of continuous improvement, rigorous testing, and documentation. 

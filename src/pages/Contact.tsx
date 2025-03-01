@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Send, AlertCircle, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -29,24 +30,49 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Insert form data into Supabase messages table
+      const { error } = await supabase
+        .from('messages')
+        .insert([
+          { 
+            name: formData.name,
+            email: formData.email,
+            subject: formData.subject,
+            message: formData.message
+          }
+        ]);
 
-    // Show success toast
-    toast({
-      title: "Message sent successfully!",
-      description: "I'll get back to you as soon as possible.",
-      duration: 5000,
-    });
+      if (error) {
+        console.error("Error submitting form:", error);
+        throw error;
+      }
 
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
-    setIsSubmitting(false);
+      // Show success toast
+      toast({
+        title: "Message sent successfully!",
+        description: "I'll get back to you as soon as possible.",
+        duration: 5000,
+      });
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -239,7 +265,7 @@ const Contact = () => {
                 </Button>
                 <p className="text-xs text-muted-foreground mt-4 flex items-start">
                   <AlertCircle className="h-4 w-4 mr-1 shrink-0 mt-0.5" />
-                  This is a demo form. In a real implementation, this would send a message to the backend.
+                  Your message will be saved to our database, and we'll get back to you soon.
                 </p>
               </form>
             </div>
