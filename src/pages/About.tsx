@@ -7,8 +7,8 @@ import {
   FileCode, GitMerge, Cpu, Coffee,
   Award, Briefcase, GraduationCap, Users
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { ProfileType } from "@/lib/supabase";
+import { supabase, ProfileType } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 // Skill category type
 interface SkillCategory {
@@ -29,6 +29,7 @@ interface TimelineEntry {
 const About = () => {
   const [profile, setProfile] = React.useState<ProfileType | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     async function fetchProfile() {
@@ -43,66 +44,76 @@ const About = () => {
 
         if (error) {
           console.error("Error fetching profile:", error);
+          toast({
+            title: "Error",
+            description: "Could not load profile data",
+            variant: "destructive",
+          });
         } else if (data) {
           setProfile(data);
         }
       } catch (error) {
         console.error("Unexpected error:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     }
 
     fetchProfile();
-  }, []);
+  }, [toast]);
 
-  // Define skill categories
-  const skillCategories: SkillCategory[] = [
+  // Define skill categories based on profile data
+  const skillCategories: SkillCategory[] = React.useMemo(() => [
     {
       title: "Languages",
       icon: <Code className="h-5 w-5" />,
       skills: profile?.skills.filter((skill) => 
         ["Python", "Java", "JavaScript", "TypeScript", "Go", "SQL", "C++"].includes(skill)
-      ) || ["Python", "Java", "JavaScript/TypeScript", "Go", "SQL", "C++"]
+      ) || []
     },
     {
       title: "Databases",
       icon: <Database className="h-5 w-5" />,
       skills: profile?.skills.filter((skill) => 
         ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Cassandra", "Neo4j"].includes(skill)
-      ) || ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Cassandra", "Neo4j"]
+      ) || []
     },
     {
       title: "DevOps & Infrastructure",
       icon: <Server className="h-5 w-5" />,
       skills: profile?.skills.filter((skill) => 
         ["Docker", "Kubernetes", "Terraform", "AWS", "GCP", "CI/CD", "Prometheus", "Grafana"].includes(skill)
-      ) || ["Docker", "Kubernetes", "Terraform", "AWS", "GCP", "CI/CD", "Prometheus", "Grafana"]
+      ) || []
     },
     {
       title: "Machine Learning",
       icon: <Cpu className="h-5 w-5" />,
       skills: profile?.skills.filter((skill) => 
         ["TensorFlow", "PyTorch", "scikit-learn", "Keras", "Pandas", "NumPy", "MLOps"].includes(skill)
-      ) || ["TensorFlow", "PyTorch", "scikit-learn", "Keras", "Pandas", "NumPy", "MLOps"]
+      ) || []
     },
     {
       title: "Tools & Frameworks",
       icon: <FileCode className="h-5 w-5" />,
       skills: profile?.skills.filter((skill) => 
         ["Django", "FastAPI", "Spring Boot", "Express.js", "Flask", "gRPC", "RabbitMQ", "Kafka"].includes(skill)
-      ) || ["Django", "FastAPI", "Spring Boot", "Express.js", "Flask", "gRPC", "RabbitMQ", "Kafka"]
+      ) || []
     },
     {
       title: "Other",
       icon: <GitMerge className="h-5 w-5" />,
       skills: profile?.skills.filter((skill) => 
         ["Git", "RESTful APIs", "GraphQL", "Microservices", "System Design", "Testing", "Agile"].includes(skill)
-      ) || ["Git", "RESTful APIs", "GraphQL", "Microservices", "System Design", "Testing", "Agile"]
+      ) || []
     }
-  ];
+  ], [profile?.skills]);
 
-  // Define experience timeline
+  // Define experience timeline - in a real app, this would also come from Supabase
   const timeline: TimelineEntry[] = [
     {
       title: "Lead Backend Engineer",
@@ -144,6 +155,20 @@ const About = () => {
     visible: { y: 0, opacity: 1 },
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="section-container flex justify-center items-center py-20">
+          <div className="animate-pulse flex flex-col items-center gap-4">
+            <div className="h-8 w-32 bg-muted rounded"></div>
+            <div className="h-6 w-64 bg-muted rounded"></div>
+            <div className="h-24 w-96 bg-muted rounded"></div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="section-container">
@@ -158,11 +183,11 @@ const About = () => {
             <span>About Me</span>
           </div>
           <h1 className="mb-6">
-            {profile?.title || "Backend Engineer & "} 
-            <span className="text-primary">{profile ? "" : "System Architect"}</span>
+            {profile?.title || "Loading..."} 
+            <span className="text-primary"></span>
           </h1>
           <p className="text-xl text-muted-foreground">
-            {profile?.tagline || "With over 8 years of experience designing and building high-performance, scalable backend systems for companies ranging from startups to Fortune 500s."}
+            {profile?.tagline || "Loading profile information..."}
           </p>
         </motion.div>
 
@@ -264,29 +289,31 @@ const About = () => {
             animate="visible"
           >
             {skillCategories.map((category, index) => (
-              <motion.div 
-                key={index} 
-                className="glass p-6 rounded-lg hover:shadow-md hover:shadow-primary/10 transition-all"
-                variants={itemVariants}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <div className="flex items-center mb-4">
-                  <div className="bg-primary/10 p-2 rounded-md text-primary mr-3">
-                    {category.icon}
+              category.skills.length > 0 && (
+                <motion.div 
+                  key={index} 
+                  className="glass p-6 rounded-lg hover:shadow-md hover:shadow-primary/10 transition-all"
+                  variants={itemVariants}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="bg-primary/10 p-2 rounded-md text-primary mr-3">
+                      {category.icon}
+                    </div>
+                    <h3 className="font-bold">{category.title}</h3>
                   </div>
-                  <h3 className="font-bold">{category.title}</h3>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {category.skills.map((skill, skillIndex) => (
-                    <span 
-                      key={skillIndex} 
-                      className="skill-tag transition-all duration-200"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
+                  <div className="flex flex-wrap gap-2">
+                    {category.skills.map((skill, skillIndex) => (
+                      <span 
+                        key={skillIndex} 
+                        className="skill-tag transition-all duration-200"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              )
             ))}
           </motion.div>
 
