@@ -170,7 +170,7 @@ const HeroSection = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <span className="text-primary font-mono">{profile.tagline}</span> with expertise in 
+            <span className="text-primary font-mono">{profile.tagline}</span> with experience in 
             <motion.span 
               className="inline-flex items-center px-1.5"
               initial={{ opacity: 0, x: -10 }}
@@ -185,7 +185,7 @@ const HeroSection = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 1.2 }}
             >
-              <Terminal className="h-4 w-4 mr-1" /> Machine Learning
+              <Terminal className="h-4 w-4 mr-1" /> Backend development
             </motion.span>, and 
             <motion.span 
               className="inline-flex items-center px-1.5"
@@ -262,7 +262,7 @@ const HeroSection = () => {
                 <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
                 <div className="h-2 w-2 rounded-full bg-green-500"></div>
               </div>
-              <div className="ml-4 text-xs font-mono text-muted-foreground">backend_engineer.py</div>
+              <div className="ml-4 text-xs font-mono text-muted-foreground">software_engineer.py</div>
             </div>
             <pre className="pt-8">
               <code>
@@ -272,7 +272,7 @@ const HeroSection = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.2 }}
                 >
-                  <span className="code-keyword">class</span> <span className="code-function">BackendEngineer</span>:
+                  <span className="code-keyword">class</span> <span className="code-function">SoftwareEngineer</span>:
                 </motion.span>
                 <motion.span 
                   className="code-line"
@@ -354,7 +354,7 @@ const HeroSection = () => {
           >
             <h2 className="text-3xl font-bold mb-3">Featured Projects</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              A selection of my recent backend engineering and system architecture work
+              A selection of my recent software engineering projects
             </p>
           </motion.div>
 
@@ -389,7 +389,7 @@ const HeroSection = () => {
             </motion.div>
           ) : (
             <p className="text-center text-muted-foreground">
-              No featured projects found. Please add some projects in your Supabase database.
+              No featured projects found.
             </p>
           )}
 

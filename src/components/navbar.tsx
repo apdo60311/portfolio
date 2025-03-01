@@ -57,7 +57,7 @@ export function Navbar({ className }: NavbarProps) {
           className="font-mono text-lg font-bold"
           onClick={() => setActiveLink("/")}
         >
-          <span className="text-primary">&gt;_</span> dev.backend
+          <span className="text-primary">&gt;_</span> dev.software
         </Link>
 
         {/* Mobile menu button */}
