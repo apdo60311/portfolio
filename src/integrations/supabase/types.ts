@@ -9,7 +9,93 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          github_url: string
+          id: string
+          linkedin_url: string
+          name: string
+          passion: string
+          skills: string[]
+          tagline: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          github_url: string
+          id?: string
+          linkedin_url: string
+          name: string
+          passion: string
+          skills?: string[]
+          tagline: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          github_url?: string
+          id?: string
+          linkedin_url?: string
+          name?: string
+          passion?: string
+          skills?: string[]
+          tagline?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          challenge: string | null
+          code_language: string | null
+          code_snippet: string | null
+          created_at: string
+          demo_url: string | null
+          description: string
+          featured: boolean
+          github_url: string | null
+          id: string
+          link: string
+          solution: string | null
+          tags: string[]
+          title: string
+        }
+        Insert: {
+          challenge?: string | null
+          code_language?: string | null
+          code_snippet?: string | null
+          created_at?: string
+          demo_url?: string | null
+          description: string
+          featured?: boolean
+          github_url?: string | null
+          id?: string
+          link: string
+          solution?: string | null
+          tags?: string[]
+          title: string
+        }
+        Update: {
+          challenge?: string | null
+          code_language?: string | null
+          code_snippet?: string | null
+          created_at?: string
+          demo_url?: string | null
+          description?: string
+          featured?: boolean
+          github_url?: string | null
+          id?: string
+          link?: string
+          solution?: string | null
+          tags?: string[]
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
