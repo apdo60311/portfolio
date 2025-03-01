@@ -18,7 +18,25 @@ export function Navbar({ className }: NavbarProps) {
   React.useEffect(() => {
     const path = window.location.pathname;
     setActiveLink(path);
-  }, []);
+
+    // Close mobile menu when pathname changes
+    setIsMenuOpen(false);
+  }, [window.location.pathname]);
+
+  // Close mobile menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isMenuOpen && !target.closest('.mobile-menu') && !target.closest('.mobile-menu-button')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const links = [
     { href: "/", label: "Home" },
@@ -68,6 +86,7 @@ export function Navbar({ className }: NavbarProps) {
             size="icon"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
+            className="mobile-menu-button"
           >
             {isMenuOpen ? (
               <XIcon className="h-5 w-5" />
@@ -106,7 +125,7 @@ export function Navbar({ className }: NavbarProps) {
         {/* Mobile navigation */}
         {isMenuOpen && (
           <motion.div
-            className="absolute top-16 left-0 w-full bg-background/95 backdrop-blur-lg border-b md:hidden"
+            className="absolute top-16 left-0 w-full bg-background/95 backdrop-blur-lg border-b md:hidden mobile-menu z-50"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
