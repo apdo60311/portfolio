@@ -164,8 +164,10 @@ export type Database = {
           featured: boolean
           github_url: string | null
           id: string
+          image_url: string | null
           link: string
           solution: string | null
+          status: string
           tags: string[]
           title: string
         }
@@ -179,8 +181,10 @@ export type Database = {
           featured?: boolean
           github_url?: string | null
           id?: string
+          image_url?: string | null
           link: string
           solution?: string | null
+          status?: string
           tags?: string[]
           title: string
         }
@@ -194,8 +198,10 @@ export type Database = {
           featured?: boolean
           github_url?: string | null
           id?: string
+          image_url?: string | null
           link?: string
           solution?: string | null
+          status?: string
           tags?: string[]
           title?: string
         }
