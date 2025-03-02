@@ -39,4 +39,6 @@ export type ProjectType = {
   code_language?: string;
   featured: boolean;
   created_at?: string;
+  status: 'working' | 'under_development' | 'completed';
+  image_url?: string;
 };

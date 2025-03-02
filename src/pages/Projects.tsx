@@ -11,10 +11,14 @@ import {
   Server,
   BarChart,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  Construction
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase, ProjectType } from "@/lib/supabase";
+import { Badge } from "@/components/ui/badge";
 
 const Projects = () => {
   const [projects, setProjects] = React.useState<ProjectType[]>([]);
@@ -59,6 +63,42 @@ const Projects = () => {
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 },
+  };
+
+  const getStatusIcon = (status: ProjectType['status']) => {
+    switch (status) {
+      case 'working':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'under_development':
+        return <Construction className="h-4 w-4 text-yellow-500" />;
+      case 'completed':
+      default:
+        return <Clock className="h-4 w-4 text-blue-500" />;
+    }
+  };
+
+  const getStatusText = (status: ProjectType['status']) => {
+    switch (status) {
+      case 'working':
+        return 'Working';
+      case 'under_development':
+        return 'Under Development';
+      case 'completed':
+      default:
+        return 'Completed';
+    }
+  };
+
+  const getStatusColor = (status: ProjectType['status']) => {
+    switch (status) {
+      case 'working':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'under_development':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'completed':
+      default:
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+    }
   };
 
   const getIconForProject = (project: ProjectType) => {
@@ -142,103 +182,122 @@ const Projects = () => {
                 className="glass rounded-lg overflow-hidden"
                 variants={itemVariants}
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center">
-                      <div className="bg-primary/10 p-2 rounded-md text-primary mr-3">
-                        {getIconForProject(project)}
-                      </div>
-                      <h3 className="text-xl font-bold">{project.title}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {project.image_url && (
+                    <div className="md:col-span-1 h-full">
+                      <img 
+                        src={project.image_url} 
+                        alt={project.title}
+                        className="w-full h-full object-cover max-h-[240px] md:max-h-none rounded-t-lg md:rounded-l-lg md:rounded-t-none"
+                      />
                     </div>
-                    <div className="flex space-x-2">
-                      {project.github_url && (
-                        <a
-                          href={project.github_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <Github size={18} />
-                        </a>
-                      )}
-                      {project.demo_url && (
-                        <a
-                          href={project.demo_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <ExternalLink size={18} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="text-muted-foreground mb-4">
-                    {project.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tags.map((tag, tagIndex) => (
-                      <span key={tagIndex} className="skill-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {expandedProject === project.id ? (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      {project.challenge && (
-                        <div className="mb-4">
-                          <h4 className="font-bold mb-2">Challenge</h4>
-                          <p className="text-muted-foreground">
-                            {project.challenge}
-                          </p>
+                  )}
+                  <div className={`p-6 ${project.image_url ? 'md:col-span-2' : 'md:col-span-3'}`}>
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4 gap-2">
+                      <div className="flex items-center">
+                        <div className="bg-primary/10 p-2 rounded-md text-primary mr-3">
+                          {getIconForProject(project)}
                         </div>
-                      )}
-
-                      {project.solution && (
-                        <div className="mb-4">
-                          <h4 className="font-bold mb-2">Solution</h4>
-                          <p className="text-muted-foreground">
-                            {project.solution}
-                          </p>
-                        </div>
-                      )}
-
-                      {project.code_snippet && (
-                        <div className="mb-4">
-                          <h4 className="font-bold mb-2">Code Sample</h4>
-                          <div className="code-block">
-                            <pre>
-                              <code>{project.code_snippet}</code>
-                            </pre>
+                        <div>
+                          <h3 className="text-xl font-bold">{project.title}</h3>
+                          <div className="flex items-center mt-1">
+                            <Badge variant="outline" className={`flex items-center gap-1 px-2 py-1 text-xs font-medium ${getStatusColor(project.status)}`}>
+                              {getStatusIcon(project.status)}
+                              {getStatusText(project.status)}
+                            </Badge>
                           </div>
                         </div>
-                      )}
+                      </div>
+                      <div className="flex space-x-2">
+                        {project.github_url && (
+                          <a
+                            href={project.github_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <Github size={18} />
+                          </a>
+                        )}
+                        {project.demo_url && (
+                          <a
+                            href={project.demo_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <ExternalLink size={18} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
 
-                      <Button
-                        variant="ghost"
-                        className="mt-2"
-                        onClick={() => setExpandedProject(null)}
+                    <p className="text-muted-foreground mb-4">
+                      {project.description}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.tags.map((tag, tagIndex) => (
+                        <span key={tagIndex} className="skill-tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {expandedProject === project.id ? (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
                       >
-                        Show Less
+                        {project.challenge && (
+                          <div className="mb-4">
+                            <h4 className="font-bold mb-2">Challenge</h4>
+                            <p className="text-muted-foreground">
+                              {project.challenge}
+                            </p>
+                          </div>
+                        )}
+
+                        {project.solution && (
+                          <div className="mb-4">
+                            <h4 className="font-bold mb-2">Solution</h4>
+                            <p className="text-muted-foreground">
+                              {project.solution}
+                            </p>
+                          </div>
+                        )}
+
+                        {project.code_snippet && (
+                          <div className="mb-4">
+                            <h4 className="font-bold mb-2">Code Sample</h4>
+                            <div className="code-block">
+                              <pre>
+                                <code>{project.code_snippet}</code>
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+
+                        <Button
+                          variant="ghost"
+                          className="mt-2"
+                          onClick={() => setExpandedProject(null)}
+                        >
+                          Show Less
+                        </Button>
+                      </motion.div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="mt-2"
+                        onClick={() => setExpandedProject(project.id)}
+                      >
+                        <Code className="mr-2 h-4 w-4" />
+                        View Details & Code
                       </Button>
-                    </motion.div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="mt-2"
-                      onClick={() => setExpandedProject(project.id)}
-                    >
-                      <Code className="mr-2 h-4 w-4" />
-                      View Details & Code
-                    </Button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
