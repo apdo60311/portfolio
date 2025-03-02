@@ -19,16 +19,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase, ProjectType } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
+import { useLocation } from "react-router-dom";
 
 const Projects = () => {
   const [projects, setProjects] = React.useState<ProjectType[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [expandedProject, setExpandedProject] = React.useState<string | null>(null);
+  const location = useLocation();
+  const projectRefs = React.useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   React.useEffect(() => {
     fetchProjects();
   }, []);
+
+  React.useEffect(() => {
+    // Check if there's a hash in the URL and scroll to that project
+    if (location.hash && !loading) {
+      const projectId = location.hash.substring(1); // Remove the # from the hash
+      if (projectId && projectRefs.current[projectId]) {
+        projectRefs.current[projectId]?.scrollIntoView({ behavior: 'smooth' });
+        setExpandedProject(projectId);
+      }
+    }
+  }, [location.hash, loading]);
 
   const fetchProjects = async () => {
     try {
@@ -179,6 +193,8 @@ const Projects = () => {
             {projects.map((project) => (
               <motion.div
                 key={project.id}
+                ref={el => projectRefs.current[project.id] = el}
+                id={project.id}
                 className="glass rounded-lg overflow-hidden"
                 variants={itemVariants}
               >

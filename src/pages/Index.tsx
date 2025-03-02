@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -381,7 +380,7 @@ const HeroSection = () => {
                       </span>
                     ))}
                   </div>
-                  <Link to={project.link} className="group inline-flex items-center text-primary hover:underline">
+                  <Link to={`/projects#${project.id}`} className="group inline-flex items-center text-primary hover:underline">
                     View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </motion.div>
