@@ -8,3 +8,5 @@ public_projects = { table = "projects", schema = "public" }
 public_profiles = { table = "profiles", schema = "public" }
 public_blog_posts = { table = "blog_posts", schema = "public" }
 
+[app_settings]
+show_lovable_badge = false
