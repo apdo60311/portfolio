@@ -5,3 +5,5 @@ project_id = "dlmnucgxnwcrtteurfgr"
 enabled = true
 [realtime.tables]
 public_projects = { table = "projects", schema = "public" }
+public_profiles = { table = "profiles", schema = "public" }
+

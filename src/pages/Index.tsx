@@ -1,5 +1,6 @@
+
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Layout } from "@/components/layout";
 import { Link } from "react-router-dom";
@@ -13,9 +14,17 @@ import {
   Mail, 
   ArrowRight, 
   ExternalLink,
-  Loader2
+  Loader2,
+  Star,
+  Clock,
+  Trophy,
+  ChevronRight
 } from "lucide-react";
 import { supabase, ProfileType, ProjectType } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
+import { SkillBadge } from "@/components/skill-badge";
+import { ProjectCard } from "@/components/project-card";
+import { StatsCard } from "@/components/stats-card";
 
 const TypingEffect = ({ text, delay = 100 }: { text: string; delay?: number }) => {
   const [displayText, setDisplayText] = React.useState("");
@@ -45,8 +54,15 @@ const TypingEffect = ({ text, delay = 100 }: { text: string; delay?: number }) =
 const HeroSection = () => {
   const [profile, setProfile] = React.useState<ProfileType | null>(null);
   const [featuredProjects, setFeaturedProjects] = React.useState<ProjectType[]>([]);
+  const [recentProjects, setRecentProjects] = React.useState<ProjectType[]>([]);
+  const [projectStats, setProjectStats] = React.useState({
+    total: 0,
+    completed: 0,
+    inProgress: 0
+  });
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -72,6 +88,32 @@ const HeroSection = () => {
         if (projectsError) throw new Error(`Error fetching projects: ${projectsError.message}`);
         setFeaturedProjects(projectsData);
         
+        // Fetch most recent projects (limit to 3)
+        const { data: recentData, error: recentError } = await supabase
+          .from('projects')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(3);
+          
+        if (recentError) throw new Error(`Error fetching recent projects: ${recentError.message}`);
+        setRecentProjects(recentData);
+        
+        // Calculate project statistics
+        const { data: allProjects, error: statsError } = await supabase
+          .from('projects')
+          .select('status');
+          
+        if (statsError) throw new Error(`Error fetching project stats: ${statsError.message}`);
+        
+        const completed = allProjects.filter(p => p.status === 'completed').length;
+        const inProgress = allProjects.filter(p => ['working', 'under_development'].includes(p.status)).length;
+        
+        setProjectStats({
+          total: allProjects.length,
+          completed,
+          inProgress
+        });
+        
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -81,7 +123,31 @@ const HeroSection = () => {
     };
 
     fetchData();
-  }, []);
+    
+    // Subscribe to real-time updates
+    const projectsChannel = supabase
+      .channel('public:projects')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'projects' }, 
+        (payload) => {
+          console.log('Projects change received:', payload);
+          toast({
+            title: "Portfolio updated",
+            description: "A project was just updated. Refreshing data...",
+            duration: 3000
+          });
+          
+          // Refresh the data
+          fetchData();
+        }
+      )
+      .subscribe();
+      
+    // Cleanup subscription
+    return () => {
+      supabase.removeChannel(projectsChannel);
+    };
+  }, [toast]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -142,6 +208,7 @@ const HeroSection = () => {
 
   return (
     <React.Fragment>
+      {/* Hero Section */}
       <div className="container flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -196,6 +263,18 @@ const HeroSection = () => {
             </motion.span>
           </motion.p>
           
+          {/* Dynamic Skills Section */}
+          <motion.div
+            className="flex flex-wrap justify-center gap-2 mb-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          >
+            {profile.skills.map((skill, index) => (
+              <SkillBadge key={index} name={skill} />
+            ))}
+          </motion.div>
+          
           <motion.div 
             className="flex flex-wrap justify-center gap-4 mb-12"
             initial={{ opacity: 0, y: 20 }}
@@ -247,6 +326,33 @@ const HeroSection = () => {
             >
               <Mail className="h-5 w-5" />
             </a>
+          </motion.div>
+          
+          {/* Project Stats Row */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+          >
+            <StatsCard 
+              title="Projects"
+              value={projectStats.total.toString()}
+              icon={<Trophy className="h-5 w-5 text-amber-500" />}
+              description="Total completed projects"
+            />
+            <StatsCard 
+              title="Completed"
+              value={projectStats.completed.toString()}
+              icon={<Star className="h-5 w-5 text-emerald-500" />}
+              description="Projects ready for production"
+            />
+            <StatsCard 
+              title="In Progress"
+              value={projectStats.inProgress.toString()}
+              icon={<Clock className="h-5 w-5 text-blue-500" />}
+              description="Currently working on"
+            />
           </motion.div>
           
           <motion.div 
@@ -343,6 +449,7 @@ const HeroSection = () => {
         </motion.div>
       </div>
 
+      {/* Featured Projects Section with Improved UI */}
       <div className="bg-secondary/5 py-16 backdrop-blur-sm">
         <div className="container">
           <motion.div 
@@ -364,26 +471,8 @@ const HeroSection = () => {
               initial="hidden"
               animate="visible"
             >
-              {featuredProjects.map((project, index) => (
-                <motion.div 
-                  key={project.id}
-                  className="glass p-6 rounded-lg hover:shadow-md hover:shadow-primary/10 transition-all"
-                  variants={itemVariants}
-                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                >
-                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                  <p className="text-muted-foreground mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tags.map((tag, tagIndex) => (
-                      <span key={tagIndex} className="skill-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <Link to={`/projects#${project.id}`} className="group inline-flex items-center text-primary hover:underline">
-                    View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </motion.div>
+              {featuredProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
               ))}
             </motion.div>
           ) : (
@@ -407,7 +496,61 @@ const HeroSection = () => {
         </div>
       </div>
 
+      {/* Recent Projects / Timeline Section */}
       <div className="container py-16">
+        <motion.div
+          className="mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-3xl font-bold mb-8 text-center">Recent Work</h2>
+          
+          <div className="relative border-l border-muted ml-4 md:ml-12 pl-8 space-y-10">
+            {recentProjects.map((project, index) => (
+              <motion.div 
+                key={project.id}
+                className="relative"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <div className="absolute -left-12 mt-1.5 h-6 w-6 rounded-full border border-primary/50 bg-background flex items-center justify-center">
+                  <div className="h-3 w-3 rounded-full bg-primary"></div>
+                </div>
+                <time className="mb-1 text-sm font-normal text-muted-foreground">
+                  {new Date(project.created_at || '').toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric'
+                  })}
+                </time>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  {project.title}
+                </h3>
+                <p className="text-muted-foreground mb-3 line-clamp-2">
+                  {project.description}
+                </p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {project.tags.slice(0, 3).map((tag, tagIndex) => (
+                    <span key={tagIndex} className="skill-tag">
+                      {tag}
+                    </span>
+                  ))}
+                  {project.tags.length > 3 && (
+                    <span className="skill-tag">+{project.tags.length - 3} more</span>
+                  )}
+                </div>
+                <Link 
+                  to={`/projects#${project.id}`} 
+                  className="group inline-flex items-center text-primary hover:underline"
+                >
+                  Read more <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      
         <motion.div 
           className="max-w-4xl mx-auto glass p-8 rounded-lg text-center"
           initial={{ opacity: 0, scale: 0.95 }}
