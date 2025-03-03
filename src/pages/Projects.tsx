@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/layout";
@@ -44,7 +43,6 @@ const Projects = () => {
   React.useEffect(() => {
     fetchProjects();
     
-    // Set up realtime subscription
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -72,9 +70,8 @@ const Projects = () => {
   }, []);
 
   React.useEffect(() => {
-    // Check if there's a hash in the URL and scroll to that project
     if (location.hash && !loading) {
-      const projectId = location.hash.substring(1); // Remove the # from the hash
+      const projectId = location.hash.substring(1);
       if (projectId && projectRefs.current[projectId]) {
         projectRefs.current[projectId]?.scrollIntoView({ behavior: 'smooth' });
         setExpandedProject(projectId);
@@ -99,37 +96,6 @@ const Projects = () => {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFavoriteProject = async (projectId: string, isFeatured: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ featured: !isFeatured })
-        .eq('id', projectId);
-      
-      if (error) throw error;
-      
-      toast({
-        title: !isFeatured ? "Project featured" : "Project unfeatured",
-        description: !isFeatured 
-          ? "The project has been added to featured projects." 
-          : "The project has been removed from featured projects.",
-        duration: 3000,
-      });
-      
-      // Update local state
-      setProjects(projects.map(p => 
-        p.id === projectId ? {...p, featured: !isFeatured} : p
-      ));
-    } catch (error) {
-      console.error('Error updating project:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update project status.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -185,8 +151,6 @@ const Projects = () => {
   };
 
   const getIconForProject = (project: ProjectType) => {
-    // This is a simple way to determine the icon based on tags
-    // You could add an icon field to your Supabase table for more control
     const tags = project.tags.map(tag => tag.toLowerCase());
     
     if (tags.some(tag => ['database', 'sql', 'mongodb', 'postgres'].includes(tag))) {
@@ -200,7 +164,6 @@ const Projects = () => {
     }
   };
 
-  // Filter projects based on search term and filter status
   const filteredProjects = projects
     .filter(project => 
       (searchTerm === "" || 
@@ -212,7 +175,6 @@ const Projects = () => {
       filterStatus === "all" || project.status === filterStatus
     );
 
-  // Sort projects based on sort order
   const sortedProjects = [...filteredProjects].sort((a, b) => {
     const dateA = new Date(a.created_at || "").getTime();
     const dateB = new Date(b.created_at || "").getTime();
@@ -369,21 +331,6 @@ const Projects = () => {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            "rounded-full",
-                            project.featured && "text-primary"
-                          )}
-                          onClick={() => handleFavoriteProject(project.id, project.featured)}
-                          title={project.featured ? "Remove from featured" : "Add to featured"}
-                        >
-                          <Star className={cn(
-                            "h-4 w-4", 
-                            project.featured && "fill-primary"
-                          )} />
-                        </Button>
                         {project.github_url && (
                           <a
                             href={project.github_url}

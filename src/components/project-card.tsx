@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { ProjectType } from '@/lib/supabase';
 import { SkillBadge } from './skill-badge';
 
@@ -50,14 +50,22 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
           View Project <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Link>
         
-        <div className={`text-xs px-2 py-1 rounded-full ${
-          project.status === 'completed' 
-            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-            : project.status === 'working' 
-              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-        }`}>
-          {project.status.replace('_', ' ')}
+        <div className="flex items-center gap-2">
+          {project.featured && (
+            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
+              <Star className="h-3 w-3 fill-primary" />
+              Featured
+            </div>
+          )}
+          <div className={`text-xs px-2 py-1 rounded-full ${
+            project.status === 'completed' 
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+              : project.status === 'working' 
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+          }`}>
+            {project.status.replace('_', ' ')}
+          </div>
         </div>
       </div>
     </motion.div>
