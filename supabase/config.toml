@@ -1,1 +1,7 @@
+
 project_id = "dlmnucgxnwcrtteurfgr"
+
+[realtime]
+enabled = true
+[realtime.tables]
+public_projects = { table = "projects", schema = "public" }

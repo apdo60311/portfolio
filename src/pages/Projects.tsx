@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/layout";
 import { 
   Code, 
@@ -14,23 +14,61 @@ import {
   RefreshCw,
   Clock,
   CheckCircle,
-  Construction
+  Construction,
+  Star,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  Filter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase, ProjectType } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 
 const Projects = () => {
   const [projects, setProjects] = React.useState<ProjectType[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [expandedProject, setExpandedProject] = React.useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [filterStatus, setFilterStatus] = React.useState<ProjectType['status'] | "all">("all");
+  const [sortOrder, setSortOrder] = React.useState<"newest" | "oldest">("newest");
   const location = useLocation();
   const projectRefs = React.useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const { toast } = useToast();
 
   React.useEffect(() => {
     fetchProjects();
+    
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects'
+        },
+        (payload) => {
+          console.log('Change received!', payload);
+          toast({
+            title: "Project updated",
+            description: "Project data has been updated. Refreshing...",
+            duration: 3000,
+          });
+          fetchProjects();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -61,6 +99,37 @@ const Projects = () => {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFavoriteProject = async (projectId: string, isFeatured: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ featured: !isFeatured })
+        .eq('id', projectId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: !isFeatured ? "Project featured" : "Project unfeatured",
+        description: !isFeatured 
+          ? "The project has been added to featured projects." 
+          : "The project has been removed from featured projects.",
+        duration: 3000,
+      });
+      
+      // Update local state
+      setProjects(projects.map(p => 
+        p.id === projectId ? {...p, featured: !isFeatured} : p
+      ));
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update project status.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -131,6 +200,25 @@ const Projects = () => {
     }
   };
 
+  // Filter projects based on search term and filter status
+  const filteredProjects = projects
+    .filter(project => 
+      (searchTerm === "" || 
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+    )
+    .filter(project => 
+      filterStatus === "all" || project.status === filterStatus
+    );
+
+  // Sort projects based on sort order
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
+    const dateA = new Date(a.created_at || "").getTime();
+    const dateB = new Date(b.created_at || "").getTime();
+    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+  });
+
   if (loading) {
     return (
       <Layout>
@@ -168,7 +256,7 @@ const Projects = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-3xl mx-auto text-center mb-16"
+          className="max-w-3xl mx-auto text-center mb-8"
         >
           <div className="inline-flex items-center justify-center bg-primary/10 text-primary rounded-full px-3 py-1 mb-6 text-sm font-medium">
             <Folder className="h-4 w-4 mr-2" />
@@ -183,20 +271,70 @@ const Projects = () => {
           </p>
         </motion.div>
 
-        {projects.length > 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-6xl mx-auto mb-8 glass p-4 rounded-lg"
+        >
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search projects by title, description, or tags..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <select 
+                  className="bg-background border border-input text-sm rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as ProjectType['status'] | "all")}
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="working">Working</option>
+                  <option value="under_development">Under Development</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
+              >
+                {sortOrder === "newest" ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                {sortOrder === "newest" ? "Newest First" : "Oldest First"}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {sortedProjects.length > 0 ? (
           <motion.div
             className="max-w-6xl mx-auto grid gap-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            {projects.map((project) => (
+            {sortedProjects.map((project) => (
               <motion.div
                 key={project.id}
                 ref={el => projectRefs.current[project.id] = el}
                 id={project.id}
-                className="glass rounded-lg overflow-hidden"
+                className={cn(
+                  "glass rounded-lg overflow-hidden border-2 border-transparent transition-all duration-300",
+                  expandedProject === project.id && "border-primary/30",
+                  project.featured && "bg-gradient-to-br from-primary/5 to-background"
+                )}
                 variants={itemVariants}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {project.image_url && (
@@ -216,23 +354,44 @@ const Projects = () => {
                         </div>
                         <div>
                           <h3 className="text-xl font-bold">{project.title}</h3>
-                          <div className="flex items-center mt-1">
+                          <div className="flex items-center mt-1 space-x-2">
                             <Badge variant="outline" className={`flex items-center gap-1 px-2 py-1 text-xs font-medium ${getStatusColor(project.status)}`}>
                               {getStatusIcon(project.status)}
                               {getStatusText(project.status)}
                             </Badge>
+                            {project.featured && (
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 flex items-center gap-1 px-2 py-1 text-xs font-medium">
+                                <Star className="h-3 w-3 text-primary fill-primary" />
+                                Featured
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
                       <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "rounded-full",
+                            project.featured && "text-primary"
+                          )}
+                          onClick={() => handleFavoriteProject(project.id, project.featured)}
+                          title={project.featured ? "Remove from featured" : "Add to featured"}
+                        >
+                          <Star className={cn(
+                            "h-4 w-4", 
+                            project.featured && "fill-primary"
+                          )} />
+                        </Button>
                         {project.github_url && (
                           <a
                             href={project.github_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-foreground transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 hover:bg-secondary p-2 rounded-full"
                           >
-                            <Github size={18} />
+                            <Github size={16} />
                           </a>
                         )}
                         {project.demo_url && (
@@ -240,9 +399,9 @@ const Projects = () => {
                             href={project.demo_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-foreground transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 hover:bg-secondary p-2 rounded-full"
                           >
-                            <ExternalLink size={18} />
+                            <ExternalLink size={16} />
                           </a>
                         )}
                       </div>
@@ -254,65 +413,90 @@ const Projects = () => {
 
                     <div className="flex flex-wrap gap-2 mb-4">
                       {project.tags.map((tag, tagIndex) => (
-                        <span key={tagIndex} className="skill-tag">
+                        <span 
+                          key={tagIndex} 
+                          className="skill-tag animate-fade-in"
+                          style={{ animationDelay: `${tagIndex * 50}ms` }}
+                        >
                           {tag}
                         </span>
                       ))}
                     </div>
 
-                    {expandedProject === project.id ? (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                      >
-                        {project.challenge && (
-                          <div className="mb-4">
-                            <h4 className="font-bold mb-2">Challenge</h4>
-                            <p className="text-muted-foreground">
-                              {project.challenge}
-                            </p>
-                          </div>
-                        )}
-
-                        {project.solution && (
-                          <div className="mb-4">
-                            <h4 className="font-bold mb-2">Solution</h4>
-                            <p className="text-muted-foreground">
-                              {project.solution}
-                            </p>
-                          </div>
-                        )}
-
-                        {project.code_snippet && (
-                          <div className="mb-4">
-                            <h4 className="font-bold mb-2">Code Sample</h4>
-                            <div className="code-block">
-                              <pre>
-                                <code>{project.code_snippet}</code>
-                              </pre>
-                            </div>
-                          </div>
-                        )}
-
-                        <Button
-                          variant="ghost"
-                          className="mt-2"
-                          onClick={() => setExpandedProject(null)}
+                    <AnimatePresence>
+                      {expandedProject === project.id ? (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
                         >
-                          Show Less
+                          {project.challenge && (
+                            <motion.div 
+                              className="mb-4"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.1 }}
+                            >
+                              <h4 className="font-bold mb-2">Challenge</h4>
+                              <p className="text-muted-foreground">
+                                {project.challenge}
+                              </p>
+                            </motion.div>
+                          )}
+
+                          {project.solution && (
+                            <motion.div 
+                              className="mb-4"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              <h4 className="font-bold mb-2">Solution</h4>
+                              <p className="text-muted-foreground">
+                                {project.solution}
+                              </p>
+                            </motion.div>
+                          )}
+
+                          {project.code_snippet && (
+                            <motion.div 
+                              className="mb-4"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              <h4 className="font-bold mb-2">Code Sample</h4>
+                              <div className="code-block bg-secondary/10 rounded-md p-4 overflow-x-auto">
+                                <pre className="font-mono text-sm">
+                                  <code>{project.code_snippet}</code>
+                                </pre>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            className="mt-2"
+                            onClick={() => setExpandedProject(null)}
+                          >
+                            <ChevronUp className="mr-2 h-4 w-4" />
+                            Show Less
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="mt-2 hover:bg-primary/10 transition-colors"
+                          onClick={() => setExpandedProject(project.id)}
+                        >
+                          <Code className="mr-2 h-4 w-4" />
+                          View Details & Code
+                          <ChevronDown className="ml-2 h-4 w-4" />
                         </Button>
-                      </motion.div>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        className="mt-2"
-                        onClick={() => setExpandedProject(project.id)}
-                      >
-                        <Code className="mr-2 h-4 w-4" />
-                        View Details & Code
-                      </Button>
-                    )}
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
               </motion.div>
@@ -321,9 +505,25 @@ const Projects = () => {
         ) : (
           <div className="max-w-3xl mx-auto text-center p-12 glass rounded-lg">
             <h3 className="text-xl font-medium mb-4">No Projects Found</h3>
-            <p className="text-muted-foreground mb-6">
-              It looks like there are no projects in your Supabase database yet. Add some projects to showcase your work.
-            </p>
+            {searchTerm !== "" || filterStatus !== "all" ? (
+              <p className="text-muted-foreground mb-6">
+                No projects match your current search and filter criteria. Try adjusting your search.
+              </p>
+            ) : (
+              <p className="text-muted-foreground mb-6">
+                It looks like there are no projects in your Supabase database yet. Add some projects to showcase your work.
+              </p>
+            )}
+            {(searchTerm !== "" || filterStatus !== "all") && (
+              <Button 
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterStatus("all");
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
           </div>
         )}
       </div>
