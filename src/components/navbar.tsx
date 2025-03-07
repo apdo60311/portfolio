@@ -14,6 +14,8 @@ interface NavbarProps {
 export function Navbar({ className }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [activeLink, setActiveLink] = React.useState("/");
+  const mobileMenuRef = React.useRef<HTMLDivElement>(null);
+  const menuButtonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
     const path = window.location.pathname;
@@ -38,7 +40,13 @@ export function Navbar({ className }: NavbarProps) {
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (isMenuOpen && !target.closest('.mobile-menu') && !target.closest('.mobile-menu-button')) {
+      if (
+        isMenuOpen && 
+        mobileMenuRef.current && 
+        menuButtonRef.current && 
+        !mobileMenuRef.current.contains(target) && 
+        !menuButtonRef.current.contains(target)
+      ) {
         setIsMenuOpen(false);
       }
     };
@@ -84,6 +92,10 @@ export function Navbar({ className }: NavbarProps) {
     visible: { opacity: 1, y: 0 },
   };
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
     <header
       className={cn(
@@ -106,8 +118,9 @@ export function Navbar({ className }: NavbarProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={toggleMenu}
             aria-label="Toggle menu"
+            ref={menuButtonRef}
             className="mobile-menu-button touch-fix"
           >
             {isMenuOpen ? (
@@ -147,7 +160,8 @@ export function Navbar({ className }: NavbarProps) {
         {/* Mobile navigation */}
         {isMenuOpen && (
           <motion.div
-            className="fixed inset-0 top-14 md:top-16 bg-background/95 backdrop-blur-lg border-b md:hidden mobile-menu z-50 overflow-y-auto"
+            ref={mobileMenuRef}
+            className="fixed inset-0 top-14 md:top-16 bg-background/95 backdrop-blur-lg border-b md:hidden z-50 overflow-y-auto"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "calc(100vh - 3.5rem)" }}
             exit={{ opacity: 0, height: 0 }}

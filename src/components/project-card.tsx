@@ -27,6 +27,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             src={project.image_url} 
             alt={project.title}
             className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+            loading="lazy"
           />
         </div>
       )}
