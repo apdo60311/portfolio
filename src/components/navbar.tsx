@@ -21,7 +21,18 @@ export function Navbar({ className }: NavbarProps) {
 
     // Close mobile menu when pathname changes
     setIsMenuOpen(false);
-  }, [window.location.pathname]);
+    
+    // Add body scroll lock when mobile menu is open
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [window.location.pathname, isMenuOpen]);
 
   // Close mobile menu when clicking outside
   React.useEffect(() => {
@@ -32,9 +43,19 @@ export function Navbar({ className }: NavbarProps) {
       }
     };
 
+    // Close menu on resize (if screen becomes larger)
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && isMenuOpen) {
+        setIsMenuOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('resize', handleResize);
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
     };
   }, [isMenuOpen]);
 
@@ -87,7 +108,7 @@ export function Navbar({ className }: NavbarProps) {
             size="icon"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
-            className="mobile-menu-button"
+            className="mobile-menu-button touch-fix"
           >
             {isMenuOpen ? (
               <XIcon className="h-5 w-5" />
@@ -126,18 +147,18 @@ export function Navbar({ className }: NavbarProps) {
         {/* Mobile navigation */}
         {isMenuOpen && (
           <motion.div
-            className="absolute top-16 left-0 w-full bg-background/95 backdrop-blur-lg border-b md:hidden mobile-menu z-50"
+            className="fixed inset-0 top-16 bg-background/95 backdrop-blur-lg border-b md:hidden mobile-menu z-50 overflow-y-auto"
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: "calc(100vh - 4rem)" }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <div className="container py-4 flex flex-col space-y-4">
+            <div className="container py-6 flex flex-col space-y-4">
               {links.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   className={cn(
-                    "text-sm font-medium px-2 py-2 rounded-md transition-colors",
+                    "text-base font-medium px-3 py-3 rounded-md transition-colors touch-fix",
                     activeLink === link.href
                       ? "bg-primary/10 text-primary"
                       : "text-foreground/80 hover:text-foreground hover:bg-accent/50"

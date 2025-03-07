@@ -24,7 +24,7 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
       )}
     >
       {post.cover_image && (
-        <div className="relative h-48 w-full overflow-hidden">
+        <div className="relative h-40 sm:h-48 w-full overflow-hidden">
           <img 
             src={post.cover_image} 
             alt={post.title} 
@@ -37,7 +37,7 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
           )}
         </div>
       )}
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         <div className="flex flex-wrap gap-2 mb-3">
           {post.tags.slice(0, 3).map((tag) => (
             <span key={tag} className="bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full text-xs">
@@ -50,15 +50,15 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
             </span>
           )}
         </div>
-        <h3 className="text-xl font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="text-lg sm:text-xl font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
           <Link to={`/blog/${post.slug}`}>
             {post.title}
           </Link>
         </h3>
-        <p className="text-muted-foreground mb-4 line-clamp-3">
+        <p className="text-muted-foreground mb-4 line-clamp-3 text-sm sm:text-base">
           {post.excerpt}
         </p>
-        <div className="flex justify-between items-center text-sm">
+        <div className="flex flex-col xs:flex-row gap-2 xs:gap-0 xs:justify-between items-start xs:items-center text-xs sm:text-sm">
           <div className="flex items-center text-muted-foreground">
             <User className="h-3 w-3 mr-1" />
             <span className="truncate max-w-[100px]">{post.author}</span>

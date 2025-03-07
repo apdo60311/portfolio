@@ -32,7 +32,7 @@ export function Layout({ children }: LayoutProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className="flex-grow flex flex-col"
+          className="flex-grow flex flex-col overflow-x-hidden"
         >
           {children}
         </motion.main>
