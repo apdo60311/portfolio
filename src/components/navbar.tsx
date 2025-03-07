@@ -91,10 +91,10 @@ export function Navbar({ className }: NavbarProps) {
         className
       )}
     >
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-14 md:h-16 items-center justify-between">
         <Link
           to="/"
-          className="font-mono text-lg font-bold"
+          className="font-mono text-base md:text-lg font-bold"
           onClick={() => setActiveLink("/")}
         >
           <span className="text-primary">&gt;_</span> dev.software
@@ -147,12 +147,12 @@ export function Navbar({ className }: NavbarProps) {
         {/* Mobile navigation */}
         {isMenuOpen && (
           <motion.div
-            className="fixed inset-0 top-16 bg-background/95 backdrop-blur-lg border-b md:hidden mobile-menu z-50 overflow-y-auto"
+            className="fixed inset-0 top-14 md:top-16 bg-background/95 backdrop-blur-lg border-b md:hidden mobile-menu z-50 overflow-y-auto"
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "calc(100vh - 4rem)" }}
+            animate={{ opacity: 1, height: "calc(100vh - 3.5rem)" }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <div className="container py-6 flex flex-col space-y-4">
+            <div className="container py-4 flex flex-col space-y-3">
               {links.map((link) => (
                 <Link
                   key={link.href}
