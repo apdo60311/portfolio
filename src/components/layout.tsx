@@ -12,7 +12,6 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   
-  // Load theme from localStorage or set dark as default
   React.useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "light") {
@@ -21,7 +20,6 @@ export function Layout({ children }: LayoutProps) {
       document.documentElement.classList.add("dark");
     }
     
-    // Add viewport meta tag programmatically to ensure proper mobile scaling
     const meta = document.createElement('meta');
     meta.name = 'viewport';
     meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';

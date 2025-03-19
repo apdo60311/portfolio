@@ -3,7 +3,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-// Map of skill names to colors
 const skillColors: Record<string, string> = {
   'JavaScript': 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
   'TypeScript': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800',
@@ -17,7 +16,6 @@ const skillColors: Record<string, string> = {
   'MongoDB': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
 };
 
-// Get a random color for skills that don't have a predefined color
 const getRandomColor = (seed: string) => {
   const colors = [
     'bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800',
@@ -29,7 +27,6 @@ const getRandomColor = (seed: string) => {
     'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800',
   ];
   
-  // Use the seed to deterministically pick a color
   const index = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
   return colors[index];
 };

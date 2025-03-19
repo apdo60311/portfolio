@@ -12,7 +12,6 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ post, featured = false }: BlogCardProps) {
-  // Calculate estimated reading time
   const readingTime = Math.ceil((post.content.trim().split(/\s+/).length || 0) / 200);
 
   return (

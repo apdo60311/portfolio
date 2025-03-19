@@ -2,14 +2,9 @@
 import React, { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { StatsCardProps } from '@/interfaces/stats';
 
-interface StatsCardProps {
-  title: string;
-  value: string;
-  icon: ReactNode;
-  description?: string;
-  className?: string;
-}
+
 
 export const StatsCard = ({ 
   title, 

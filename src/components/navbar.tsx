@@ -21,10 +21,8 @@ export function Navbar({ className }: NavbarProps) {
     const path = window.location.pathname;
     setActiveLink(path);
 
-    // Close mobile menu when pathname changes
     setIsMenuOpen(false);
     
-    // Add body scroll lock when mobile menu is open
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -36,7 +34,6 @@ export function Navbar({ className }: NavbarProps) {
     };
   }, [window.location.pathname, isMenuOpen]);
 
-  // Close mobile menu when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -51,7 +48,6 @@ export function Navbar({ className }: NavbarProps) {
       }
     };
 
-    // Close menu on resize (if screen becomes larger)
     const handleResize = () => {
       if (window.innerWidth >= 768 && isMenuOpen) {
         setIsMenuOpen(false);
@@ -112,7 +108,6 @@ export function Navbar({ className }: NavbarProps) {
           <span className="text-primary">&gt;_</span> dev.software
         </Link>
 
-        {/* Mobile menu button */}
         <div className="flex md:hidden items-center">
           <ThemeToggle className="mr-2" />
           <Button
@@ -131,7 +126,6 @@ export function Navbar({ className }: NavbarProps) {
           </Button>
         </div>
 
-        {/* Desktop navigation */}
         <motion.nav
           className="hidden md:flex items-center gap-6"
           initial="hidden"
@@ -157,7 +151,6 @@ export function Navbar({ className }: NavbarProps) {
           <ThemeToggle />
         </motion.nav>
 
-        {/* Mobile navigation */}
         {isMenuOpen && (
           <motion.div
             ref={mobileMenuRef}

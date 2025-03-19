@@ -3,12 +3,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star } from 'lucide-react';
-import { ProjectType } from '@/lib/supabase';
 import { SkillBadge } from './skill-badge';
+import { ProjectCardProps } from '@/interfaces/project';
 
-interface ProjectCardProps {
-  project: ProjectType;
-}
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   // Background styles based on featured status
