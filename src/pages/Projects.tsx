@@ -21,12 +21,13 @@ import {
   Filter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase, ProjectType } from "@/lib/supabase";
+import { supabase,  } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { ProjectType } from "@/types/project";
 
 const Projects = () => {
   const [projects, setProjects] = React.useState<ProjectType[]>([]);

@@ -31,7 +31,6 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Insert form data into Supabase messages table
       const { error } = await supabase
         .from('messages')
         .insert([
@@ -48,14 +47,12 @@ const Contact = () => {
         throw error;
       }
 
-      // Show success toast
       toast({
         title: "Message sent successfully!",
         description: "I'll get back to you as soon as possible.",
         duration: 5000,
       });
 
-      // Reset form
       setFormData({
         name: "",
         email: "",

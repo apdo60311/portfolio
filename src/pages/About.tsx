@@ -9,34 +9,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { AboutContent, SkillCategory, TimelineEntry,  } from "@/interfaces/about";
 
-// Type definitions for the about content
-interface AboutContent {
-  id: string;
-  section_name: string;
-  title: string;
-  content: any; // Using any since content is JSONB with variable structure
-  display_order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-// Timeline entry type
-interface TimelineEntry {
-  title: string;
-  company: string;
-  period: string;
-  description: string;
-  icon: React.ReactNode;
-}
-
-// Skill category type
-interface SkillCategory {
-  title: string;
-  icon: React.ReactNode;
-  skills: string[];
-}
 
 const About = () => {
   const [aboutContent, setAboutContent] = React.useState<AboutContent[]>([]);
@@ -47,7 +21,6 @@ const About = () => {
     async function fetchAboutContent() {
       try {
         setLoading(true);
-        // Fetch content from the about_content table, ordered by display_order
         const { data, error } = await supabase
           .from('about_content')
           .select('*')
@@ -78,12 +51,10 @@ const About = () => {
     fetchAboutContent();
   }, [toast]);
 
-  // Helper function to get a specific section by name
   const getSection = (sectionName: string): AboutContent | undefined => {
     return aboutContent.find(section => section.section_name === sectionName);
   };
 
-  // Map icon names to components
   const getIconComponent = (iconName: string): React.ReactNode => {
     const iconMap: { [key: string]: React.ReactNode } = {
       code: <Code className="h-5 w-5" />,
@@ -96,7 +67,6 @@ const About = () => {
     return iconMap[iconName] || <Code className="h-5 w-5" />;
   };
 
-  // Parse skill categories from content
   const skillCategories: SkillCategory[] = React.useMemo(() => {
     const skillsSection = getSection('skills');
     if (!skillsSection || !skillsSection.content.categories) return [];
@@ -130,7 +100,6 @@ const About = () => {
     });
   }, [aboutContent]);
 
-  // Parse timeline entries from content
   const timeline: TimelineEntry[] = React.useMemo(() => {
     const experienceSection = getSection('experience');
     if (!experienceSection || !experienceSection.content.timeline) return [];
@@ -144,7 +113,6 @@ const About = () => {
     }));
   }, [aboutContent]);
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -175,7 +143,6 @@ const About = () => {
     );
   }
 
-  // Get specific sections
   const heroSection = getSection('hero');
   const backgroundSection = getSection('background');
   const philosophySection = getSection('philosophy');
@@ -207,7 +174,6 @@ const About = () => {
         )}
 
         <div className="max-w-5xl mx-auto">
-          {/* Background and Philosophy Section */}
           <motion.div 
             className="mb-16 flex flex-col md:flex-row gap-6 md:gap-12"
             initial={{ opacity: 0 }}
@@ -243,7 +209,6 @@ const About = () => {
             )}
           </motion.div>
 
-          {/* Experience Timeline Section */}
           {timeline.length > 0 && (
             <motion.div 
               className="mb-16"
@@ -285,7 +250,6 @@ const About = () => {
             </motion.div>
           )}
 
-          {/* Technical Skills Section */}
           {skillCategories.length > 0 && (
             <>
               <motion.h2 
@@ -336,7 +300,6 @@ const About = () => {
             </>
           )}
 
-          {/* Call to Action Section */}
           {ctaSection && (
             <motion.div 
               className="mt-16 p-8 glass rounded-lg text-center"

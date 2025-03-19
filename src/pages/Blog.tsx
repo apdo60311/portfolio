@@ -30,12 +30,10 @@ export default function Blog() {
     queryFn: getAllBlogPosts,
   });
 
-  // Get all unique tags
   const allTags = posts
     ? Array.from(new Set(posts.flatMap((post) => post.tags)))
     : [];
 
-  // Filter posts by selected tag and search term
   const filteredPosts = posts
     ? posts
         .filter(post => !selectedTag || post.tags.includes(selectedTag))
@@ -52,7 +50,6 @@ export default function Blog() {
         })
     : [];
 
-  // Setup real-time subscription for blog posts updates
   useEffect(() => {
     const channel = supabase
       .channel('blog-updates')
@@ -104,7 +101,6 @@ export default function Blog() {
           </p>
         </motion.div>
 
-        {/* Search and filters */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -161,7 +157,6 @@ export default function Blog() {
           </div>
         </motion.div>
 
-        {/* Tags filter */}
         {allTags.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}

@@ -33,7 +33,6 @@ export default function BlogPost() {
   const { toast } = useToast();
   const [readingTime, setReadingTime] = useState<number>(0);
 
-  // Redirect to blog page if no slug is provided
   useEffect(() => {
     if (!slug) {
       navigate("/blog");
@@ -59,16 +58,14 @@ export default function BlogPost() {
     enabled: !!post,
   });
 
-  // Calculate estimated reading time
   useEffect(() => {
     if (post?.content) {
       const words = post.content.trim().split(/\s+/).length;
-      const time = Math.ceil(words / 200); // Assuming 200 words per minute reading speed
+      const time = Math.ceil(words / 200); 
       setReadingTime(time);
     }
   }, [post]);
 
-  // Handle social sharing
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -86,7 +83,6 @@ export default function BlogPost() {
     }
   };
 
-  // Scroll to top when page loads
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [slug]);
@@ -143,14 +139,12 @@ export default function BlogPost() {
           </Button>
         </motion.div>
 
-        {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-4">
             {post.tags.map((tag) => (
               <span key={tag} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium flex items-center">
@@ -160,14 +154,12 @@ export default function BlogPost() {
             ))}
           </div>
 
-          {/* Title */}
           <h1 className="text-3xl md:text-4xl font-bold mb-4 
             bg-gradient-to-r from-primary to-purple-500 dark:from-blue-400 dark:to-purple-400 
             bg-clip-text text-transparent">
             {post.title}
           </h1>
 
-          {/* Meta info */}
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
             <div className="flex items-center">
               <UserIcon className="mr-1 h-4 w-4" />
@@ -183,7 +175,6 @@ export default function BlogPost() {
             </div>
           </div>
 
-          {/* Interaction Icons */}
           <div className="flex items-center gap-2 mb-4">
             <TooltipProvider>
               <Tooltip>
@@ -201,7 +192,6 @@ export default function BlogPost() {
           </div>
         </motion.header>
 
-        {/* Cover Image */}
         {post.cover_image && (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
@@ -217,7 +207,6 @@ export default function BlogPost() {
           </motion.div>
         )}
 
-        {/* Content */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -227,7 +216,6 @@ export default function BlogPost() {
           <MarkdownRenderer content={post.content} />
         </motion.div>
 
-        {/* Author Bio Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -245,7 +233,6 @@ export default function BlogPost() {
           </div>
         </motion.div>
 
-        {/* Related Posts */}
         {relatedPosts && relatedPosts.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

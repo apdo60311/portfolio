@@ -20,11 +20,13 @@ import {
   Trophy,
   ChevronRight
 } from "lucide-react";
-import { supabase, ProfileType, ProjectType } from "@/lib/supabase";
+import { supabase, } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { SkillBadge } from "@/components/skill-badge";
 import { ProjectCard } from "@/components/project-card";
 import { StatsCard } from "@/components/stats-card";
+import { ProfileType } from "@/types/profile";
+import { ProjectType } from "@/types/project";
 
 const TypingEffect = ({ text, delay = 100 }: { text: string; delay?: number }) => {
   const [displayText, setDisplayText] = React.useState("");
@@ -69,7 +71,6 @@ const HeroSection = () => {
       try {
         setLoading(true);
         
-        // Fetch profile data
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -78,7 +79,6 @@ const HeroSection = () => {
         if (profileError) throw new Error(`Error fetching profile: ${profileError.message}`);
         setProfile(profileData);
         
-        // Fetch featured projects
         const { data: projectsData, error: projectsError } = await supabase
           .from('projects')
           .select('*')
@@ -88,7 +88,6 @@ const HeroSection = () => {
         if (projectsError) throw new Error(`Error fetching projects: ${projectsError.message}`);
         setFeaturedProjects(projectsData);
         
-        // Fetch most recent projects (limit to 3)
         const { data: recentData, error: recentError } = await supabase
           .from('projects')
           .select('*')
@@ -98,7 +97,6 @@ const HeroSection = () => {
         if (recentError) throw new Error(`Error fetching recent projects: ${recentError.message}`);
         setRecentProjects(recentData);
         
-        // Calculate project statistics
         const { data: allProjects, error: statsError } = await supabase
           .from('projects')
           .select('status');
@@ -124,7 +122,6 @@ const HeroSection = () => {
 
     fetchData();
     
-    // Subscribe to real-time updates
     const projectsChannel = supabase
       .channel('public:projects')
       .on('postgres_changes', 
@@ -137,13 +134,11 @@ const HeroSection = () => {
             duration: 3000
           });
           
-          // Refresh the data
           fetchData();
         }
       )
       .subscribe();
       
-    // Cleanup subscription
     return () => {
       supabase.removeChannel(projectsChannel);
     };
@@ -165,7 +160,6 @@ const HeroSection = () => {
     visible: { y: 0, opacity: 1 },
   };
 
-  // Fallback if data is loading
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
@@ -175,7 +169,6 @@ const HeroSection = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-4">
@@ -192,7 +185,6 @@ const HeroSection = () => {
     );
   }
 
-  // Fallback content if no data is available
   if (!profile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-4">
@@ -208,7 +200,6 @@ const HeroSection = () => {
 
   return (
     <React.Fragment>
-      {/* Hero Section */}
       <div className="container flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -263,7 +254,6 @@ const HeroSection = () => {
             </motion.span>
           </motion.p>
           
-          {/* Dynamic Skills Section */}
           <motion.div
             className="flex flex-wrap justify-center gap-2 mb-10"
             initial={{ opacity: 0 }}
@@ -328,7 +318,6 @@ const HeroSection = () => {
             </a>
           </motion.div>
           
-          {/* Project Stats Row */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12"
             initial={{ opacity: 0, y: 20 }}
@@ -449,7 +438,6 @@ const HeroSection = () => {
         </motion.div>
       </div>
 
-      {/* Featured Projects Section with Improved UI */}
       <div className="bg-secondary/5 py-16 backdrop-blur-sm">
         <div className="container">
           <motion.div 
@@ -496,7 +484,6 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Recent Projects / Timeline Section */}
       <div className="container py-16">
         <motion.div
           className="mb-16"

@@ -10,35 +10,3 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Types for our Supabase tables
-export type ProfileType = {
-  id: string;
-  name: string;
-  title: string;
-  tagline: string;
-  skills: string[];
-  passion: string;
-  github_url: string;
-  linkedin_url: string;
-  email: string;
-  created_at?: string;
-};
-
-export type ProjectType = {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  link: string;
-  challenge?: string;
-  solution?: string;
-  github_url?: string;
-  demo_url?: string;
-  code_snippet?: string;
-  code_language?: string;
-  featured: boolean;
-  created_at?: string;
-  status: 'working' | 'under_development' | 'completed';
-  image_url?: string;
-};
